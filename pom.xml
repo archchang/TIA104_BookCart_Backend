@@ -14,6 +14,26 @@
 	<packaging>war</packaging>
 	<name>TIA104_BookCart_Backend</name>
 	<description>TIA104_BookCart_Backend</description>
+	<!-- 倉庫配置放這裡 ，因為有使用實驗性功能-->
+    <repositories>
+        <repository>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+    
 	<properties>
 		<java.version>17</java.version>
 	</properties>
@@ -291,6 +311,34 @@
     		<artifactId>jjwt-jackson</artifactId>
     		<version>0.11.5</version>
 		</dependency>
+
+		<!-- Spring AI -->
+	<dependency>
+    	<groupId>org.springframework.ai</groupId>
+    	<artifactId>spring-ai-core</artifactId>
+    	<version>1.0.0-M4</version>
+	</dependency>
+
+
+	<!-- Redis -->
+	<dependency>
+    	<groupId>org.springframework.boot</groupId>
+    	<artifactId>spring-boot-starter-data-redis</artifactId>
+	</dependency>
+
+	<!-- LangChain4j -->
+	<dependency>
+    	<groupId>dev.langchain4j</groupId>
+    	<artifactId>langchain4j-core</artifactId>
+    	<version>0.36.2</version>
+	</dependency>
+
+	<!-- UUID -->
+	<dependency>
+    	<groupId>com.fasterxml.uuid</groupId>
+    	<artifactId>java-uuid-generator</artifactId>
+    	<version>4.3.0</version>
+	</dependency>
 
 	</dependencies>
 

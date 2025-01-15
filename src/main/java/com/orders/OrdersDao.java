@@ -3,6 +3,7 @@ package com.orders;
 import com.orders.Orders;
 import com.shop.Cart;
 
+import java.sql.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -22,4 +23,7 @@ public interface OrdersDao {
     void saveOrderDetails(Integer ordersNo, Cart cart);  // 儲存訂單明細
     
     String findMemberEmail(Integer memberNo);  // 查詢會員email
+    
+    // 新增：複合條件查詢訂單
+    List<Orders> searchOrders(Integer ordersNo, Integer memberNo, Date startDate, Date endDate);
 }

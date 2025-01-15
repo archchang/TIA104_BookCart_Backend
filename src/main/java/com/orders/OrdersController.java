@@ -3,9 +3,13 @@ package com.orders;
 import com.orders.Orders;
 import com.orders.OrdersService;
 import com.shop.Cart;
+
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -71,5 +75,36 @@ public class OrdersController {
     @GetMapping("/member/{memberNo}")
     public ResponseEntity<List<Orders>> getMemberOrders(@PathVariable Integer memberNo) {
         return ResponseEntity.ok(ordersService.getMemberOrders(memberNo));
+    }
+    
+    /**
+     * 複合條件查詢訂單
+     * @param ordersNo   (選填)訂單編號
+     * @param memberNo   (選填)會員編號
+     * @param startDate  (選填)起始日期 (格式：yyyy-MM-dd)
+     * @param endDate    (選填)結束日期 (格式：yyyy-MM-dd)
+     * @return 符合條件的訂單列表
+     */
+    @GetMapping("/search")
+    public ResponseEntity<List<Orders>> searchOrders(
+        @RequestParam(required = false) Integer ordersNo,
+        @RequestParam(required = false) Integer memberNo,
+        @RequestParam(required = false) 
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+        @RequestParam(required = false) 
+            @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate
+    ) {
+        // 若要用 java.sql.Date 存進 DB，可在此進行轉型
+        Date sqlStartDate = (startDate == null) ? null : Date.valueOf(startDate);
+        Date sqlEndDate = (endDate == null) ? null : Date.valueOf(endDate);
+
+        List<Orders> result = ordersService.searchOrders(
+            ordersNo, 
+            memberNo, 
+            sqlStartDate, 
+            sqlEndDate
+        );
+        
+        return ResponseEntity.ok(result);
     }
 }

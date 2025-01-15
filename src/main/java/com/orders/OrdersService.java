@@ -2,6 +2,8 @@ package com.orders;
 
 import com.orders.Orders;
 import com.shop.Cart;
+
+import java.sql.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -17,4 +19,7 @@ public interface OrdersService {
     
     // 取得訂單明細
     List<Map<String, Object>> getOrderDetails(Integer ordersNo);
+    
+ // 新增：複合條件查詢訂單
+    List<Orders> searchOrders(Integer ordersNo, Integer memberNo, Date startDate, Date endDate);
 }

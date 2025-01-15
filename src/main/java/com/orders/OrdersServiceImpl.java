@@ -8,6 +8,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import javax.servlet.http.HttpSession;
+
+import java.sql.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -89,5 +91,11 @@ public class OrdersServiceImpl implements OrdersService {
     @Override
     public List<Map<String, Object>> getOrderDetails(Integer ordersNo) {
         return ordersDao.findDetailsByOrderNo(ordersNo);
+    }
+    
+    @Override
+    public List<Orders> searchOrders(Integer ordersNo, Integer memberNo, Date startDate, Date endDate) {
+        // 這裡可視需要做商業邏輯處理，若單純查詢可直接呼叫 Dao
+        return ordersDao.searchOrders(ordersNo, memberNo, startDate, endDate);
     }
 }

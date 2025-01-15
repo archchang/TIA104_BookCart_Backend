@@ -6,6 +6,9 @@ import com.shop.Cart;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.stereotype.Repository;
+
+import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -88,6 +91,43 @@ public class OrdersDaoImpl implements OrdersDao {
             "SELECT member_email FROM member WHERE member_no = ?",
             String.class,
             memberNo
+        );
+    }
+    
+    @Override
+    public List<Orders> searchOrders(Integer ordersNo, Integer memberNo, Date startDate, Date endDate) {
+        // 基本 SQL
+        StringBuilder sql = new StringBuilder("SELECT * FROM orders WHERE 1=1");
+        
+        // 用來裝動態參數
+        List<Object> params = new ArrayList<>();
+
+        // 動態判斷各條件是否存在，若存在則拼接到 SQL
+        if (ordersNo != null) {
+            sql.append(" AND orders_no = ?");
+            params.add(ordersNo);
+        }
+
+        if (memberNo != null) {
+            sql.append(" AND member_no = ?");
+            params.add(memberNo);
+        }
+
+        if (startDate != null) {
+            sql.append(" AND orders_date >= ?");
+            params.add(startDate);
+        }
+
+        if (endDate != null) {
+            sql.append(" AND orders_date <= ?");
+            params.add(endDate);
+        }
+        
+        // 使用 BeanPropertyRowMapper 轉換資料庫回傳的欄位至 Orders 物件
+        return jdbcTemplate.query(
+            sql.toString(), 
+            new BeanPropertyRowMapper<>(Orders.class), 
+            params.toArray()
         );
     }
 }
