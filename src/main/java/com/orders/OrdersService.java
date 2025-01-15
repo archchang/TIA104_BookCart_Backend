@@ -3,6 +3,7 @@ package com.orders;
 import com.orders.Orders;
 import com.shop.Cart;
 
+import java.io.ByteArrayInputStream;
 import java.sql.Date;
 import java.util.List;
 import java.util.Map;
@@ -22,4 +23,8 @@ public interface OrdersService {
     
  // 新增：複合條件查詢訂單
     List<Orders> searchOrders(Integer ordersNo, Integer memberNo, Date startDate, Date endDate);
+    
+ // 導出報表相關方法
+    ByteArrayInputStream exportToExcel();
+    ByteArrayInputStream exportToPdf();
 }

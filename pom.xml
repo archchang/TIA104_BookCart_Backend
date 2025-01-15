@@ -339,6 +339,30 @@
     	<artifactId>java-uuid-generator</artifactId>
     	<version>4.3.0</version>
 	</dependency>
+	<!-- Excel處理 -->
+	<dependency>
+	    <groupId>org.apache.poi</groupId>
+	    <artifactId>poi</artifactId>
+	    <version>5.2.3</version>
+	</dependency>
+	<dependency>
+	    <groupId>org.apache.poi</groupId>
+	    <artifactId>poi-ooxml</artifactId>
+	    <version>5.2.3</version>
+	</dependency>
+	
+	<!-- PDF處理 -->
+	<dependency>
+	    <groupId>com.itextpdf</groupId>
+	    <artifactId>itextpdf</artifactId>
+	    <version>5.5.13.3</version>
+	</dependency>
+	
+	<dependency>
+    	<groupId>com.itextpdf</groupId>
+    	<artifactId>itext-asian</artifactId>
+    	<version>5.2.0</version>
+	</dependency>
 
 	</dependencies>
 

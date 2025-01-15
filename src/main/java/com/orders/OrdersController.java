@@ -2,12 +2,20 @@ package com.orders;
 
 import com.orders.Orders;
 import com.orders.OrdersService;
+import com.orders.ExportService;
 import com.shop.Cart;
 
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;  // 添加這行
+import org.springframework.http.HttpHeaders;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.ByteArrayInputStream;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -19,9 +27,11 @@ import java.util.Map;
 public class OrdersController {
     
     private final OrdersService ordersService;
+    private final ExportService exportService;
     
-    public OrdersController(OrdersService ordersService) {
+    public OrdersController(OrdersService ordersService, ExportService exportService) {
         this.ordersService = ordersService;
+        this.exportService = exportService;
     }
     
     // 新增訂單
@@ -106,5 +116,45 @@ public class OrdersController {
         );
         
         return ResponseEntity.ok(result);
+    }
+    
+    @GetMapping("/export/excel")
+    public ResponseEntity<InputStreamResource> exportExcel() {
+        try {
+            ByteArrayInputStream in = exportService.exportToExcel();
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=" + 
+                URLEncoder.encode(exportService.getExcelFileName(), StandardCharsets.UTF_8.toString()));
+            headers.add("Content-Type", exportService.getExcelContentType());
+            
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .body(new InputStreamResource(in));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/export/pdf")
+    public ResponseEntity<InputStreamResource> exportPdf() {
+        try {
+            ByteArrayInputStream in = exportService.exportToPdf();
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=" + 
+                URLEncoder.encode(exportService.getPdfFileName(), StandardCharsets.UTF_8.toString()));
+            headers.add("Content-Type", exportService.getPdfContentType());
+            
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .body(new InputStreamResource(in));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }
