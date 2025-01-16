@@ -20,6 +20,10 @@ public class CorsConfig {
         config.addAllowedOrigin("http://localhost");       // 如果使用80端口（省略寫法）
         config.addAllowedOrigin("http://127.0.0.1:80");   // 本地IP訪問
         config.addAllowedOrigin("http://127.0.0.1");      // 本地IP訪問（省略寫法）
+        config.addAllowedOrigin("http://35.234.25.82:80");    // 如果使用80端口
+        config.addAllowedOrigin("http://35.234.25.82");       // 如果使用80端口（省略寫法）
+        config.addAllowedOrigin("http://fbsep-bookcart.ddns.net");// 如果使用80端口（省略寫法）
+        config.addAllowedOrigin("http://fbsep-bookcart.ddns.net:80");// 如果使用80端口
         
         // 允許帶憑證（cookies）
         config.setAllowCredentials(true);

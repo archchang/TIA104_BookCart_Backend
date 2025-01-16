@@ -33,7 +33,8 @@ public class MailServiceImpl implements MailService {
 			);
 			
 			helper.setText(content);
-			mailSender.send(message);
+//			mailSender.send(message);
+			new Thread(()->mailSender.send(message)).start();
 			
 		} catch (MessagingException e) {
 			throw new RuntimeException("發送郵件失敗", e);
@@ -58,7 +59,8 @@ public class MailServiceImpl implements MailService {
             );
             
             helper.setText(content);
-            mailSender.send(message);
+//            mailSender.send(message);
+            new Thread(()->mailSender.send(message)).start();
             
         } catch (MessagingException e) {
             throw new RuntimeException("發送重設密碼郵件失敗", e);
