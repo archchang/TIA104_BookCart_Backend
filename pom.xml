@@ -11,7 +11,7 @@
 	<groupId>TIA104_BookCart_Backend</groupId>
 	<artifactId>TIA104_BookCart_Backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	<name>TIA104_BookCart_Backend</name>
 	<description>TIA104_BookCart_Backend</description>
 	<!-- 倉庫配置放這裡 ，因為有使用實驗性功能-->
@@ -362,6 +362,39 @@
     	<groupId>com.itextpdf</groupId>
     	<artifactId>itext-asian</artifactId>
     	<version>5.2.0</version>
+	</dependency>
+	
+	<!-- 聊天室運用 -->
+	
+	<dependency>
+    <groupId>javax.websocket</groupId>
+    	<artifactId>javax.websocket-api</artifactId>
+    	<version>1.1</version>
+	</dependency>
+	<!-- Spring Boot Starter WebSocket -->
+	<dependency>
+	    <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-starter-websocket</artifactId>
+	    <version>2.7.0</version>
+	</dependency>
+	
+	<!-- Spring Boot Starter Data Redis -->
+	<dependency>
+	    <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-starter-data-redis</artifactId>
+	    <version>2.7.0</version>
+	</dependency>
+	
+	<!-- Gson -->
+	<dependency>
+	    <groupId>com.google.code.gson</groupId>
+	    <artifactId>gson</artifactId>
+	    <version>2.8.9</version>
+	</dependency>
+	
+	<dependency>
+    	<groupId>com.fasterxml.jackson.datatype</groupId>
+    	<artifactId>jackson-datatype-jsr310</artifactId>
 	</dependency>
 
 	</dependencies>
