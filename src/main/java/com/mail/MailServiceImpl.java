@@ -66,4 +66,29 @@ public class MailServiceImpl implements MailService {
             throw new RuntimeException("發送重設密碼郵件失敗", e);
         }
     }
+	
+	@Override
+	public void sendVerificationEmail(String to, String verificationUrl) {
+	    try {
+	        MimeMessage message = mailSender.createMimeMessage();
+	        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+	        
+	        helper.setTo(to);
+	        helper.setSubject("帳號驗證通知");
+	        
+	        String content = String.format(
+	            "親愛的會員您好，\n\n" +
+	            "請點擊以下連結驗證您的帳號：\n%s\n\n" +
+	            "此連結將在5分鐘後失效。\n\n" +
+	            "如果您沒有註冊帳號，請忽略此郵件。",
+	            verificationUrl
+	        );
+	        
+	        helper.setText(content);
+	        new Thread(()->mailSender.send(message)).start();
+	        
+	    } catch (MessagingException e) {
+	        throw new RuntimeException("發送驗證郵件失敗", e);
+	    }
+	}
 }

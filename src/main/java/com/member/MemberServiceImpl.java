@@ -1,5 +1,6 @@
 package com.member;
 
+import com.config.UrlConfig;
 import com.dto.MemberDTO;
 import com.dto.MemberSearchDTO;
 import com.dto.StreamingData;
@@ -35,6 +36,9 @@ public class MemberServiceImpl implements MemberService {
 	@Autowired
     private MailService mailService;
 	
+	@Autowired
+    private UrlConfig urlConfig;
+	
 	@Value("${app.frontend.url}")
 	private String frontendUrl;
     
@@ -57,9 +61,21 @@ public class MemberServiceImpl implements MemberService {
 		member.setMemberEmail(memberEmail);
 		member.setMemberPassword(memberPassword);
 		member.setCreateTime(new Date());
-		member.setMemberStatus(1);
+		// 設置狀態為 0 表示未驗證
+		member.setMemberStatus(0);
 
-		return MemberDTO.fromEntity(memberRepository.save(member));
+		// 生成驗證token並存入memberRegid
+	    String token = jwtUtil.generateEmailVerificationToken(memberAccount);
+	    member.setMemberRegid(token);
+	    
+	    // 儲存會員資料
+	    member = memberRepository.save(member);
+	    
+	    // 發送驗證信
+	    String verificationUrl = urlConfig.getFrontendUrl() + "/verification.html?token=" + token;
+	    mailService.sendVerificationEmail(memberEmail, verificationUrl);
+
+	    return MemberDTO.fromEntity(member);
 	}
 
 	@Override
@@ -290,7 +306,9 @@ public class MemberServiceImpl implements MemberService {
         }
 
         String token = jwtUtil.generatePasswordResetToken(account);
-        String resetUrl = frontendUrl + "/reset-password.html?token=" + token;
+        
+     // 使用動態取得的 frontendUrl
+        String resetUrl = urlConfig.getFrontendUrl() + "/reset-password.html?token=" + token;
         mailService.sendPasswordResetEmail(email, resetUrl);
     }
 
@@ -313,5 +331,58 @@ public class MemberServiceImpl implements MemberService {
         
         member.setMemberPassword(newPassword);
         memberRepository.save(member);
+    }
+    
+    @Override
+    public boolean verifyEmail(String token) {
+        try {
+            // 驗證 token
+            if (!jwtUtil.validateToken(token)) {
+                return false;
+            }
+            
+            // 取得會員帳號
+            String memberAccount = jwtUtil.getMemberAccountFromToken(token);
+            Member member = memberRepository.findByMemberAccount(memberAccount);
+            
+            if (member == null || !token.equals(member.getMemberRegid())) {
+                return false;
+            }
+            
+            // 如果已驗證過直接回傳true (狀態為1表示已驗證)
+            if (member.getMemberStatus() == 1) {
+                return true;
+            }
+            
+            // 更新驗證狀態
+            member.setMemberStatus(1); // 設置為已驗證
+            member.setMemberRegid(null); // 清除驗證token
+            memberRepository.save(member);
+            
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    @Override
+    public void resendVerificationEmail(String email) {
+        Member member = memberRepository.findByMemberEmail(email);
+        if (member == null) {
+            throw new RuntimeException("找不到此Email的會員");
+        }
+        
+        if (member.getMemberStatus() == 1) {
+            throw new RuntimeException("此帳號已完成驗證");
+        }
+        
+        // 生成新的驗證token
+        String token = jwtUtil.generateEmailVerificationToken(member.getMemberAccount());
+        member.setMemberRegid(token);
+        memberRepository.save(member);
+        
+        // 重新發送驗證信  
+        String verificationUrl = urlConfig.getFrontendUrl() + "/verification.html?token=" + token;
+        mailService.sendVerificationEmail(member.getMemberEmail(), verificationUrl);
     }
 }

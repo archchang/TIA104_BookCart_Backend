@@ -409,4 +409,29 @@ public class MemberController {
                             "message", e.getMessage()));
         }
     }
+    
+    @GetMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@RequestParam String token) {
+        boolean verified = memberService.verifyEmail(token);
+        return ResponseEntity.ok()
+            .body(Map.of("verified", verified));
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<?> resendVerification(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            if (isEmpty(email)) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Email不能為空"));
+            }
+            
+            memberService.resendVerificationEmail(email);
+            return ResponseEntity.ok()
+                .body(Map.of("message", "驗證信已重新發送"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest()
+                .body(Map.of("message", e.getMessage()));
+        }
+    }
 }

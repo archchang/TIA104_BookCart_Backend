@@ -61,4 +61,12 @@ public interface MemberService {
     
     // 重設密碼
     void resetPassword(String token, String newPassword);
+    
+ // 驗證註冊信箱
+    boolean verifyEmail(String token);
+
+    // 重新發送驗證信
+    void resendVerificationEmail(String email);
+    
+    
 }

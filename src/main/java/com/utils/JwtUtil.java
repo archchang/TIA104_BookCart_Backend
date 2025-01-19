@@ -17,6 +17,8 @@ public class JwtUtil {
     // Token有效期為5分鐘
     private static final long EXPIRATION_TIME = 5 * 60 * 1000;
 
+    private static final long EMAIL_VERIFICATION_EXPIRATION = 5 * 60 * 1000;
+    
     // 生成重設密碼Token
     public String generatePasswordResetToken(String memberAccount) {
         Date now = new Date();
@@ -52,5 +54,18 @@ public class JwtUtil {
         } catch (Exception e) {
             return false;
         }
+    }
+    
+ // 生成Email驗證Token 
+    public String generateEmailVerificationToken(String memberAccount) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + EMAIL_VERIFICATION_EXPIRATION);
+
+        return Jwts.builder()
+                .setSubject(memberAccount)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(key)
+                .compact();
     }
 }

@@ -5,4 +5,7 @@ public interface MailService {
 	
 	 // 新增發送重設密碼郵件方法
     void sendPasswordResetEmail(String to, String resetUrl);
+    
+ // 新增發送驗證信方法
+    void sendVerificationEmail(String to, String verificationUrl);
 }

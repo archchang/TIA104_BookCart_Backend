@@ -5,6 +5,7 @@ import com.websocketchat.ChatMessageDao;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -20,10 +21,16 @@ public class ChatMessageDaoImpl implements ChatMessageDao {
 
     @Override
     public void saveMessage(String sender, String receiver, String message) {
-        String key = generateKey(sender, receiver);
-        redisTemplate.opsForList().rightPush(key, message);
-        // 設置1天過期
-        redisTemplate.expire(key, 1, TimeUnit.DAYS);
+    	String key1 = generateKey(sender, receiver);
+        String key2 = generateKey(receiver, sender);
+        
+        // 儲存訊息到雙方的聊天記錄
+        redisTemplate.opsForList().rightPush(key1, message);
+        redisTemplate.opsForList().rightPush(key2, message);
+        
+        // 設置1天過期時間
+        redisTemplate.expire(key1, 1, TimeUnit.DAYS);
+        redisTemplate.expire(key2, 1, TimeUnit.DAYS);
     }
 
     @Override
@@ -41,6 +48,8 @@ public class ChatMessageDaoImpl implements ChatMessageDao {
     }
 
     private String generateKey(String sender, String receiver) {
-        return String.format("chat:%s:%s", sender, receiver);
+    	String[] participants = {sender, receiver};
+        Arrays.sort(participants); // 確保相同參與者的key一致
+    	return String.format("chat:%s:%s", sender, receiver);
     }
 }

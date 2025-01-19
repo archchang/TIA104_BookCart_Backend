@@ -29,24 +29,12 @@ public class FriendWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
-        // 從 URI 中獲取用戶名
+    	// 從WebSocket URL中提取用戶名
         String userName = extractUserName(session.getUri().getPath());
         sessions.put(userName, session);
 
-        // 發送在線用戶狀態
-        Set<String> userNames = sessions.keySet();
-        State stateMessage = new State("open", userName, userNames);
-        String stateMessageJson = gson.toJson(stateMessage);
-        
-        sessions.values().forEach(webSocketSession -> {
-            try {
-                if (webSocketSession.isOpen()) {
-                    webSocketSession.sendMessage(new TextMessage(stateMessageJson));
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
+        // 廣播在線用戶列表
+        broadcastUserList();
     }
 
     @Override
@@ -58,36 +46,70 @@ public class FriendWebSocketHandler extends TextWebSocketHandler {
 
             // 處理歷史消息請求
             if ("history".equals(chatMessage.getType())) {
-                handleHistoryRequest(session, sender, receiver);
+                List<String> history = chatService.getHistoryMessages(sender, receiver);
+                ChatMessage historyMessage = new ChatMessage(
+                    "history",
+                    sender,
+                    receiver,
+                    gson.toJson(history)
+                );
+                session.sendMessage(new TextMessage(gson.toJson(historyMessage)));
                 return;
             }
 
-            // 處理普通消息
+            // 處理私人消息
             WebSocketSession receiverSession = sessions.get(receiver);
             if (receiverSession != null && receiverSession.isOpen()) {
+                // 發送訊息給接收者
                 receiverSession.sendMessage(message);
+                // 發送者也要收到訊息（用於UI更新）
                 session.sendMessage(message);
+                // 儲存訊息到Redis
+                chatService.saveMessage(sender, receiver, message.getPayload());
+            } else {
+                // 如果接收者不在線，僅儲存訊息
                 chatService.saveMessage(sender, receiver, message.getPayload());
             }
         } catch (Exception e) {
             e.printStackTrace();
+            try {
+                // 發送錯誤訊息給客戶端
+                ChatMessage errorMessage = new ChatMessage(
+                    "error",
+                    "system",
+                    "all",
+                    "處理訊息時發生錯誤"
+                );
+                session.sendMessage(new TextMessage(gson.toJson(errorMessage)));
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
+    	// 從WebSocket URL中提取用戶名
         String userName = extractUserName(session.getUri().getPath());
+        // 移除離線的session
         sessions.remove(userName);
 
-        // 通知其他用戶有人離線
-        Set<String> userNames = sessions.keySet();
-        State stateMessage = new State("close", userName, userNames);
-        String stateMessageJson = gson.toJson(stateMessage);
+        // 廣播更新後的用戶列表
+        broadcastUserList();
+    }
 
-        sessions.values().forEach(webSocketSession -> {
+    /**
+     * 廣播在線用戶列表給所有連接的用戶
+     */
+    private void broadcastUserList() {
+        Set<String> userNames = sessions.keySet();
+        State stateMessage = new State("state", "", userNames);
+        String stateJson = gson.toJson(stateMessage);
+        
+        sessions.values().forEach(ws -> {
             try {
-                if (webSocketSession.isOpen()) {
-                    webSocketSession.sendMessage(new TextMessage(stateMessageJson));
+                if (ws.isOpen()) {
+                    ws.sendMessage(new TextMessage(stateJson));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -95,21 +117,9 @@ public class FriendWebSocketHandler extends TextWebSocketHandler {
         });
     }
 
-    private void handleHistoryRequest(WebSocketSession session, String sender, String receiver) {
-        try {
-            List<String> messages = chatService.getHistoryMessages(sender, receiver);
-            ChatMessage historyMessage = new ChatMessage(
-                "history",
-                sender,
-                receiver,
-                gson.toJson(messages)
-            );
-            session.sendMessage(new TextMessage(gson.toJson(historyMessage)));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
+    /**
+     * 從WebSocket URL路徑中提取用戶名
+     */
     private String extractUserName(String path) {
         return path.substring(path.lastIndexOf('/') + 1);
     }
