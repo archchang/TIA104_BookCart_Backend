@@ -29,6 +29,16 @@ public class ProductServiceImpl implements ProductService {
     
     @Override
     public Product updateProduct(Product product) {
+    	// 如果沒有新圖片資料，先取得既有圖片
+        if (product.getProduct_picture() == null) {
+            Product existingProduct = productDao.findById(product.getProduct_no());
+            if (existingProduct == null) {  // 檢查商品是否存在
+                return null;
+            }
+            // 保留原有圖片
+            product.setProduct_picture(existingProduct.getProduct_picture());
+        }
+    	
         return productDao.update(product) > 0 ? product : null;
     }
     

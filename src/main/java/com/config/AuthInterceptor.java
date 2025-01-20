@@ -15,7 +15,11 @@ public class AuthInterceptor implements HandlerInterceptor {
         MemberDTO member = (MemberDTO) session.getAttribute("loggedInMember");
 
         // 檢查需要會員權限的頁面
-        if ((path.contains("/checkout.html") || path.contains("/myorders.html")) && member == null) {
+        if ((path.contains("/checkout.html") || 
+        	path.contains("/myorders.html") || 
+        	path.contains("/chat-room.html") ||
+        	path.contains("/member-profile.html") ||
+        	path.contains("/member-orders.html")) && member == null) {
             response.sendRedirect("/login.html");
             return false;
         }

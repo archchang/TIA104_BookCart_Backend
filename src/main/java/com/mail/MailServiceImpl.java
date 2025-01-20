@@ -1,6 +1,7 @@
 package com.mail;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
@@ -14,12 +15,16 @@ public class MailServiceImpl implements MailService {
 	@Autowired
 	private JavaMailSender mailSender;
 	
+	@Value("${spring.mail.username}")
+    private String fromEmail;
+	
 	@Override
 	public void sendOrderConfirmationEmail(String to, Integer ordersNo, Integer ordersTotal) {
 		try {
 			MimeMessage message = mailSender.createMimeMessage();
 			MimeMessageHelper helper = new MimeMessageHelper(message, true);
 			
+			helper.setFrom(fromEmail);
 			helper.setTo(to);
 			helper.setSubject("訂單成立通知 - 訂單編號: " + ordersNo);
 			
@@ -47,6 +52,7 @@ public class MailServiceImpl implements MailService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
             
+            helper.setFrom(fromEmail);
             helper.setTo(to);
             helper.setSubject("重設密碼通知");
             
@@ -73,6 +79,7 @@ public class MailServiceImpl implements MailService {
 	        MimeMessage message = mailSender.createMimeMessage();
 	        MimeMessageHelper helper = new MimeMessageHelper(message, true);
 	        
+	        helper.setFrom(fromEmail);
 	        helper.setTo(to);
 	        helper.setSubject("帳號驗證通知");
 	        
