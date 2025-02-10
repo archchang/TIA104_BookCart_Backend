@@ -1,5 +1,6 @@
 package com.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -7,23 +8,37 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 public class CorsConfig {
-    @Bean
+    
+	@Value("${app.allowed.origins}")
+	private String allowedOrigins;
+	
+	@Value("${app.frontend.url}")
+	private String frontendUrl;
+	
+	@Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         
-     // 允許的來源（前端應用的URL）
-        config.addAllowedOrigin("http://localhost:80");    // 如果使用80端口
-        config.addAllowedOrigin("http://localhost");       // 如果使用80端口（省略寫法）
-        config.addAllowedOrigin("http://127.0.0.1:80");   // 本地IP訪問
-        config.addAllowedOrigin("http://127.0.0.1");      // 本地IP訪問（省略寫法）
-        config.addAllowedOrigin("http://35.234.25.82:80");    // 如果使用80端口
-        config.addAllowedOrigin("http://35.234.25.82");       // 如果使用80端口（省略寫法）
-        config.addAllowedOrigin("http://fbsep-bookcart.ddns.net");// 如果使用80端口（省略寫法）
-        config.addAllowedOrigin("http://fbsep-bookcart.ddns.net:80");// 如果使用80端口
+        
+        //從properties檔案中讀取並設置允許的來源
+        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        origins.forEach(origin -> {
+        	config.addAllowedOrigin(origin);
+        	
+        	if(!origin.contains(":")) {
+        		config.addAllowedOrigin(origin + ":80");
+        	}
+        });
+        
+        config.addAllowedOrigin(frontendUrl);
+        if(!frontendUrl.contains(":")) {
+        	config.addAllowedOrigin(frontendUrl + ":80");
+        }
         
         // 允許帶憑證（cookies）
         config.setAllowCredentials(true);
