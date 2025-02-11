@@ -17,39 +17,17 @@ import com.shop.Cart;
 @RestController
 @RequestMapping("/api/cart")
 public class CartController {
-
-    /**
-     * 新增商品到購物車
-     * @param cart 購物車項目
-     * @param session HTTP Session
-     * @return 購物車狀態
-     */
 	
+	private final CartService cartService;
+	
+	public CartController(CartService cartService) {
+		this.cartService = cartService;
+	}
 	
     @PostMapping("/add")
     public ResponseEntity<Map<String, Object>> addToCart(
-    	
     		@RequestBody Cart cart, HttpSession session) {
-        @SuppressWarnings("unchecked")
-        List<Cart> buylist = (List<Cart>) session.getAttribute("shoppingcart");
-        
-        if (buylist == null) {
-            buylist = new Vector<Cart>();
-            buylist.add(cart);
-        } else {
-            if (buylist.contains(cart)) {
-                Cart existingCart = buylist.get(buylist.indexOf(cart));
-                existingCart.setQuantity(existingCart.getQuantity() + cart.getQuantity());
-            } else {
-                buylist.add(cart);
-            }
-        }
-        
-        // 計算購物車狀態
-        Map<String, Object> status = calculateCartStatus(buylist);
-        session.setAttribute("shoppingcart", buylist);
-        
-        return ResponseEntity.ok(status);
+        return ResponseEntity.ok(cartService.addToCart(cart, session));
     }
 
     /**
@@ -61,19 +39,8 @@ public class CartController {
 	
     @PutMapping("/quantity/increase/{index}")
     public ResponseEntity<Map<String, Object>> increaseQuantity(
-    		
     		@PathVariable int index, HttpSession session) {
-        
-		@SuppressWarnings("unchecked")
-        List<Cart> buylist = (List<Cart>) session.getAttribute("shoppingcart");
-        
-        if (buylist != null && index >= 0 && index < buylist.size()) {
-            Cart cart = buylist.get(index);
-            cart.setQuantity(cart.getQuantity() + 1);
-            return ResponseEntity.ok(calculateCartStatus(buylist));
-        }
-        
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(cartService.increaseQuantity(index, session));
     }
 
     /**
@@ -85,21 +52,9 @@ public class CartController {
 	
 	
     @PutMapping("/quantity/decrease/{index}")
-    public ResponseEntity<Map<String, Object>> decreaseQuantity(
-    		
+    public ResponseEntity<Map<String, Object>> decreaseQuantity(  		
     		@PathVariable int index, HttpSession session) {
-        @SuppressWarnings("unchecked")
-        List<Cart> buylist = (List<Cart>) session.getAttribute("shoppingcart");
-        
-        if (buylist != null && index >= 0 && index < buylist.size()) {
-            Cart cart = buylist.get(index);
-            if (cart.getQuantity() > 1) {
-                cart.setQuantity(cart.getQuantity() - 1);
-                return ResponseEntity.ok(calculateCartStatus(buylist));
-            }
-        }
-        
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(cartService.decreaseQuantity(index, session));
     }
 
     /**
@@ -111,18 +66,20 @@ public class CartController {
 	
 	
     @DeleteMapping("/{index}")
-    public ResponseEntity<Map<String, Object>> deleteFromCart(
-    		
+    public ResponseEntity<Map<String, Object>> deleteFromCart(	
     		@PathVariable int index, HttpSession session) {
-        @SuppressWarnings("unchecked")
-        List<Cart> buylist = (List<Cart>) session.getAttribute("shoppingcart");
-        
-        if (buylist != null && index >= 0 && index < buylist.size()) {
-            buylist.remove(index);
-            return ResponseEntity.ok(calculateCartStatus(buylist));
-        }
-        
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(cartService.deleteFromCart(index, session));
+    }
+    
+    /**
+     * 取得當前購物車內容
+     * @param session HTTP Session
+     * @return 購物車內容和狀態
+     */
+	
+    @GetMapping
+    public ResponseEntity<Map<String, Object>> getCart(HttpSession session) {
+        return ResponseEntity.ok(cartService.getCart(session));
     }
 
     /**
@@ -133,72 +90,9 @@ public class CartController {
 	
     @GetMapping("/checkout")
     public ResponseEntity<Map<String, Object>> checkout(HttpSession session) {
-        @SuppressWarnings("unchecked")
-        List<Cart> buylist = (List<Cart>) session.getAttribute("shoppingcart");
-        
-        if (buylist == null || buylist.isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        
-        int totalAmount = calculateTotalAmount(buylist);
-        Map<String, Object> response = new HashMap<>();
-        response.put("amount", totalAmount);
-        response.put("items", buylist);
-        
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(cartService.checkout(session));
     }
 
-    /**
-     * 取得當前購物車內容
-     * @param session HTTP Session
-     * @return 購物車內容和狀態
-     */
-	
-    @GetMapping
-    public ResponseEntity<Map<String, Object>> getCart(HttpSession session) {
-        @SuppressWarnings("unchecked")
-        List<Cart> buylist = (List<Cart>) session.getAttribute("shoppingcart");
-        
-        if (buylist == null) {
-            return ResponseEntity.ok(calculateCartStatus(new Vector<Cart>()));
-        }
-        
-        return ResponseEntity.ok(calculateCartStatus(buylist));
-    }
-
-    /**
-     * 計算購物車狀態（商品種類數和總件數）
-     * @param buylist 購物車清單
-     * @return 購物車狀態Map
-     */
-    private Map<String, Object> calculateCartStatus(List<Cart> buylist) {
-        Map<String, Object> status = new HashMap<>();
-        int kinds = buylist.size();
-        int pcs = 0;
-        
-        for (Cart cart : buylist) {
-            pcs += cart.getQuantity();
-        }
-        
-        status.put("kinds", kinds);
-        status.put("pcs", pcs);
-        status.put("items", buylist);
-        
-        return status;
-    }
-
-    /**
-     * 計算購物車總金額
-     * @param buylist 購物車清單
-     * @return 總金額
-     */
-    private int calculateTotalAmount(List<Cart> buylist) {
-        int totalAmount = 0;
-        for (Cart item : buylist) {
-            totalAmount += item.getProduct_price() * item.getQuantity();
-        }
-        return totalAmount;
-    }
     
     /**
      * 清空購物車
@@ -207,7 +101,7 @@ public class CartController {
      */
     @DeleteMapping("/clear")
     public ResponseEntity<Map<String, Object>> clearCart(HttpSession session) {
-        session.removeAttribute("shoppingcart");
-        return ResponseEntity.ok(calculateCartStatus(new Vector<Cart>()));
+        
+        return ResponseEntity.ok(cartService.clearCart(session));
     }
 }
