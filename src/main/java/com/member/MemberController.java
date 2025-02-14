@@ -288,9 +288,9 @@ public class MemberController {
         
         // 驗證密碼
         String password = request.get("memberPassword");
-        if (password == null || 
-            !password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])[a-zA-Z0-9]{8,}$")) {
-            errors.add("密碼至少需要8個字符，包含至少1個大寫字母、1個小寫字母和1個數字");
+        if (password == null ||
+            !password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])[\\x21-\\x7E]{8,}$")) {
+            errors.add("密碼至少需要8個字符，包含至少1個大寫字母、1個小寫字母和1個數字（可選擇使用特殊符號）");
         }
         
         if (!errors.isEmpty()) {
